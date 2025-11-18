@@ -10,13 +10,19 @@ import {
   Divider,
   Group,
   Anchor,
+  Alert,
 } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../features/clients/clientsSlice';
+import { useNavigate } from 'react-router-dom';
+import { IconAlertCircle } from '@tabler/icons-react';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const { loading } = useSelector((state) => state.auth);
+
+  const [bannerError, setBannerError] = useState(null);
 
   const form = useForm({
     initialValues: {
@@ -32,9 +38,21 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (values) => {
-    const result = await dispatch(loginUser(values));
-    if (result.meta.requestStatus === 'fulfilled') {
-      console.log('Login successful');
+    setBannerError(null); // reset error on submit
+    try {
+      const result = await dispatch(loginUser(values));
+      if (result.meta.requestStatus === 'fulfilled') {
+        // login success → redirect to home
+        navigate('/home');
+      } else {
+        // login failed → show error
+        const errPayload = result.payload;
+        const message =
+          (errPayload && errPayload.message) || 'Invalid username or password';
+        setBannerError(message);
+      }
+    } catch (err) {
+      setBannerError('Something went wrong. Please try again.');
     }
   };
 
@@ -70,7 +88,7 @@ const LoginPage = () => {
           borderRadius: 20,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center', // center everything horizontally
+          alignItems: 'center',
         }}
       >
         {/* Header */}
@@ -83,6 +101,18 @@ const LoginPage = () => {
           </Text>
         </div>
 
+        {/* Banner Error */}
+        {bannerError && (
+          <Alert
+            icon={<IconAlertCircle size={16} />}
+            title="Login Failed"
+            color="red"
+            mb="md"
+          >
+           Invalid username or password
+          </Alert>
+        )}
+
         {/* Form */}
         <form onSubmit={form.onSubmit(handleSubmit)} style={{ width: '100%' }}>
           <Stack spacing="sm" style={{ width: '100%' }}>
@@ -93,14 +123,8 @@ const LoginPage = () => {
               radius="xl"
               style={{ width: '100%' }}
               styles={{
-                input: {
-                  border: 'none',
-                  borderRadius: 12,
-                  backgroundColor: '#f5f5f5',
-                },
-                label: {
-                  fontWeight: 500,
-                },
+                input: { border: 'none', borderRadius: 12, backgroundColor: '#f5f5f5' },
+                label: { fontWeight: 500 },
               }}
               {...form.getInputProps('username')}
             />
@@ -113,14 +137,8 @@ const LoginPage = () => {
               radius="xl"
               style={{ width: '100%' }}
               styles={{
-                input: {
-                  border: 'none',
-                  borderRadius: 12,
-                  backgroundColor: '#f5f5f5',
-                },
-                label: {
-                  fontWeight: 500,
-                },
+                input: { border: 'none', borderRadius: 12, backgroundColor: '#f5f5f5' },
+                label: { fontWeight: 500 },
               }}
               {...form.getInputProps('password')}
             />
@@ -143,33 +161,21 @@ const LoginPage = () => {
               Show Password
             </label>
 
-            {error && (
-              <Text color="red" size="sm" align="center">
-                {error}
-              </Text>
-            )}
-
             <Button
               type="submit"
               loading={loading}
               fullWidth
               size="md"
               radius="xl"
-              styles={{
-                root: {
-                  background: 'linear-gradient(135deg, #10b981, #047857)',
-                },
-              }}
+              styles={{ root: { background: 'linear-gradient(135deg, #10b981, #047857)' } }}
             >
               Login
             </Button>
           </Stack>
         </form>
 
-        {/* Divider */}
         <Divider label="Don't have an account?" labelPosition="center" my="md" />
 
-        {/* Register button centered */}
         <Group position="center">
           <Anchor
             component="button"
