@@ -32,7 +32,6 @@ SwiftBus Frontend is built using React, Vite, and Redux Toolkit. It communicates
 - MUI (Material UI)
 - Emotion (styled components)
 - @tabler/icons-react
-- ESLint for linting
 
 ---
 
